@@ -1,5 +1,3 @@
-const { v4: uuid } = require("uuid");
-
 const Product = require("../models/product");
 
 exports.getAddProduct = (req, res, next) => {
@@ -11,14 +9,17 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  const id = uuid();
   const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(id, title, imageUrl, description, price);
-  product.save();
-  res.redirect("/");
+  const imageUrl = req.body.imageUrl;
+  const product = new Product(title, price, description, imageUrl);
+  product
+    .save()
+    .then(() => {
+      res.redirect("/");
+    })
+    .catch((err) => console.error(err));
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -55,16 +56,21 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.getDeleteProduct = (req, res, next) => {
   const { productId } = req.params;
-  Product.deleteById(productId);
-  res.redirect("/admin/products");
+  Product.deleteById(productId)
+    .then(() => {
+      res.redirect("/admin/products");
+    })
+    .catch((err) => console.error(err));
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll((products) => {
-    res.render("admin/products", {
-      prods: products,
-      pageTitle: "Admin Products",
-      path: "/admin/products",
-    });
-  });
+  Product.fetchAll()
+    .then(([rows, fieldData]) => {
+      res.render("admin/products", {
+        prods: rows,
+        pageTitle: "Admin Products",
+        path: "/admin/products",
+      });
+    })
+    .catch((err) => console.error(err));
 };
